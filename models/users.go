@@ -22,13 +22,13 @@ type UserFactory struct {
 	db *DB
 }
 
-// NewUserManager - Create a new *UserManager that can be used for managing users.
-func NewUserManager(db *DB) (*UserFactory, error) {
+// NewUserFactory create a new *UserFactor
+func NewUserFactory(db *DB) (*UserFactory, error) {
 	db.AutoMigrate(&User{})
 	return &UserFactory{db: db}, nil
 }
 
-// Has checks if the given user exists.
+// Has checks if the given user exists
 func (uf *UserFactory) Has(name string) bool {
 	err := uf.db.Where("name=?", name).Find(&User{}).Error
 	return err == nil
@@ -48,7 +48,7 @@ func (uf *UserFactory) GetByID(id string) *User {
 	return &u
 }
 
-// Add - Creates a user and hashes the password
+// Add creates a user and hashes the password
 func (uf *UserFactory) Add(name, pass string) *User {
 	salt, _ := uuid.NewV4() // FIXME: is this a good salt?
 	guid, _ := uuid.NewV4()

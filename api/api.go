@@ -11,7 +11,7 @@ type API struct {
 // NewAPI -
 func NewAPI(db *models.DB) *API {
 
-	usermgr, _ := models.NewUserManager(db)
+	usermgr, _ := models.NewUserFactory(db)
 	quotemgr, _ := models.NewQuoteManager(db)
 
 	return &API{
