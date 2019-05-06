@@ -4,8 +4,6 @@ import (
 	"math/rand"
 
 	"github.com/jinzhu/gorm"
-	// postgress db driver
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 	// import sqlite3 driver
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
