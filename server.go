@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/markcheno/go-vue-starter/api"
-	"github.com/markcheno/go-vue-starter/models"
-	"github.com/markcheno/go-vue-starter/routes"
+	"github.com/pscn/go-vue-starter/api"
+	"github.com/pscn/go-vue-starter/models"
+	"github.com/pscn/go-vue-starter/routes"
 	"github.com/urfave/negroni"
 )
 

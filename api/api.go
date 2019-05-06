@@ -1,8 +1,6 @@
 package api
 
-import (
-	"github.com/markcheno/go-vue-starter/models"
-)
+import "github.com/pscn/go-vue-starter/models"
 
 // API -
 type API struct {
