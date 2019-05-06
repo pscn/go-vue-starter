@@ -11,75 +11,71 @@ import (
 // User struct
 type User struct {
 	gorm.Model `json:"-"`
-	Username   string `gorm:"not null;unique" json:"username"`
-	Password   string `gorm:"not null" json:"-"`
 	UUID       string `gorm:"not null;unique" json:"uuid"`
+	Name       string `gorm:"not null;unique" json:"username"`
+	Pass       string `gorm:"not null" json:"-"`
+	Salt       string `gorm:"not null" json:"-"`
 }
 
-// UserManager struct
-type UserManager struct {
+// UserFactory struct
+type UserFactory struct {
 	db *DB
 }
 
 // NewUserManager - Create a new *UserManager that can be used for managing users.
-func NewUserManager(db *DB) (*UserManager, error) {
-
+func NewUserManager(db *DB) (*UserFactory, error) {
 	db.AutoMigrate(&User{})
-
-	usermgr := UserManager{}
-
-	usermgr.db = db
-
-	return &usermgr, nil
+	return &UserFactory{db: db}, nil
 }
 
-// HasUser - Check if the given username exists.
-func (state *UserManager) HasUser(username string) bool {
-	if err := state.db.Where("username=?", username).Find(&User{}).Error; err != nil {
-		return false
-	}
-	return true
+// Has checks if the given user exists.
+func (uf *UserFactory) Has(name string) bool {
+	err := uf.db.Where("name=?", name).Find(&User{}).Error
+	return err == nil
 }
 
-// FindUser -
-func (state *UserManager) FindUser(username string) *User {
-	user := User{}
-	state.db.Where("username=?", username).Find(&user)
-	return &user
+// Get user by name
+func (uf *UserFactory) Get(name string) *User {
+	u := User{}
+	uf.db.Where("name=?", name).Find(&u)
+	return &u
 }
 
-// FindUserByUUID -
-func (state *UserManager) FindUserByUUID(uuid string) *User {
-	user := User{}
-	state.db.Where("uuid=?", uuid).Find(&user)
-	return &user
+// GetByID user by ID
+func (uf *UserFactory) GetByID(id string) *User {
+	u := User{}
+	uf.db.Where("uuid=?", id).Find(&u)
+	return &u
 }
 
-// AddUser - Creates a user and hashes the password
-func (state *UserManager) AddUser(username, password string) *User {
-	passwordHash := state.HashPassword(username, password)
+// Add - Creates a user and hashes the password
+func (uf *UserFactory) Add(name, pass string) *User {
+	salt, _ := uuid.NewV4() // FIXME: is this a good salt?
 	guid, _ := uuid.NewV4()
+	passwordHash := uf.HashPassword(pass, salt.String())
 	user := &User{
-		Username: username,
-		Password: passwordHash,
-		UUID:     guid.String(),
+		UUID: guid.String(),
+		Name: name,
+		Pass: passwordHash,
+		Salt: salt.String(),
 	}
-	state.db.Create(&user)
+	uf.db.Create(&user)
 	return user
 }
 
-// HashPassword - Hash the password (takes a username as well, it can be used for salting).
-func (state *UserManager) HashPassword(username, password string) string {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+// HashPassword hashes salt + password
+func (uf *UserFactory) HashPassword(pass, salt string) string {
+	hash, err := bcrypt.GenerateFromPassword([]byte(salt+pass), bcrypt.DefaultCost)
 	if err != nil {
 		panic("Permissions: bcrypt password hashing unsuccessful")
 	}
 	return string(hash)
 }
 
-// CheckPassword - compare a hashed password with a possible plaintext equivalent
-func (state *UserManager) CheckPassword(hashedPassword, password string) bool {
-	if bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)) != nil {
+// CheckPassword compare a hashed password with a possible plaintext equivalent,
+// fetching the salt for user
+func (uf *UserFactory) CheckPassword(salt, hash, pass string) bool {
+	if bcrypt.CompareHashAndPassword([]byte(hash), []byte(salt+pass)) != nil {
 		return false
 	}
 	return true

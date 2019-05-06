@@ -26,12 +26,12 @@ func (api *API) UserSignup(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if api.users.HasUser(jsondata.Username) {
+	if api.users.Has(jsondata.Username) {
 		http.Error(w, "username already exists", http.StatusBadRequest)
 		return
 	}
 
-	user := api.users.AddUser(jsondata.Username, jsondata.Password)
+	user := api.users.Add(jsondata.Username, jsondata.Password)
 
 	jsontoken := auth.GetJSONToken(user)
 
@@ -51,13 +51,13 @@ func (api *API) UserLogin(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	user := api.users.FindUser(jsondata.Username)
-	if user.Username == "" {
+	user := api.users.Get(jsondata.Username)
+	if user.Name == "" {
 		http.Error(w, "username not found", http.StatusBadRequest)
 		return
 	}
 
-	if !api.users.CheckPassword(user.Password, jsondata.Password) {
+	if !api.users.CheckPassword(user.Salt, user.Pass, jsondata.Password) {
 		http.Error(w, "bad password", http.StatusBadRequest)
 		return
 	}
@@ -72,7 +72,7 @@ func (api *API) UserLogin(w http.ResponseWriter, req *http.Request) {
 // GetUserFromContext - return User reference from header token
 func (api *API) GetUserFromContext(req *http.Request) *models.User {
 	userclaims := auth.GetUserClaimsFromContext(req)
-	user := api.users.FindUserByUUID(userclaims["uuid"].(string))
+	user := api.users.GetByID(userclaims["uuid"].(string))
 	return user
 }
 

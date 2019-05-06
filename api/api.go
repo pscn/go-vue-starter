@@ -4,7 +4,7 @@ import "github.com/pscn/go-vue-starter/models"
 
 // API -
 type API struct {
-	users  *models.UserManager
+	users  *models.UserFactory
 	quotes *models.QuoteManager
 }
 
